@@ -59,6 +59,7 @@ from keras.layers.convolutional import Convolution2D
 from keras.layers.pooling import MaxPooling2D
 import math
 
+Architecture = "LeNet" # LeNet, NVidia
 # set up lambda layer to normalized and mean_centered the input pixels
 model = Sequential()
 model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160,320,3)))
@@ -66,9 +67,8 @@ model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160,320,3)))
 # Cropping images
 model.add(Cropping2D(cropping=((70,25),(0,0))))
 
-structure = "LeNet" # LeNet, NVidia
 # LeNet
-if structure == "LeNet":
+if Architecture == "LeNet":
     model.add(Convolution2D(filters=6, kernel_size=(5, 5), activation="relu"))
     model.add(MaxPooling2D())
 
@@ -80,8 +80,25 @@ if structure == "LeNet":
     model.add(Dense(units=84))
     model.add(Dense(units=1))
 
-if Structure == "NVidia":
-    model.add()
+if Architecture == "NVidia":
+    model.add(Convolution2D(filters=24, kernel_size=(5, 5), activation="relu"))
+    model.add(MaxPooling2D())
+    
+    model.add(Convolution2D(filters=36, kernel_size=(5, 5), activation='relu'))
+    model.add(MaxPooling2D())
+    
+    model.add(Convolution2D(filters=48, kernel_size=(5, 5), activation='relu'))
+    
+    model.add(Convolution2D(filters=64, kernel_size=(3, 3), activation='relu'))
+    
+    model.add(Convolution2D(filters=64, kernel_size=(3, 3), activation='relu'))
+    
+    model.add(Flatten())
+    model.add(Dense(units=1164))
+    model.add(Dense(units=100))
+    model.add(Dense(units=50))
+    model.add(Dense(units=1))
+    
 model.compile(loss='mse', optimizer='adam')
 history_object = model.fit_generator(train_generator,
                                      steps_per_epoch=math.ceil(len(train_samples)/batch_size),
