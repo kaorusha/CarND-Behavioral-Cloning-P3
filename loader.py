@@ -66,18 +66,22 @@ model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160,320,3)))
 # Cropping images
 model.add(Cropping2D(cropping=((70,25),(0,0))))
 
+structure = "LeNet" # LeNet, NVidia
 # LeNet
-model.add(Convolution2D(filters=6, kernel_size=(5, 5), activation="relu"))
-model.add(MaxPooling2D())
+if structure == "LeNet":
+    model.add(Convolution2D(filters=6, kernel_size=(5, 5), activation="relu"))
+    model.add(MaxPooling2D())
 
-model.add(Convolution2D(filters=16, kernel_size=(5, 5), activation='relu'))
-model.add(MaxPooling2D())
+    model.add(Convolution2D(filters=16, kernel_size=(5, 5), activation='relu'))
+    model.add(MaxPooling2D())
 
-model.add(Flatten())
-model.add(Dense(units=120))
-model.add(Dense(units=84))
-model.add(Dense(units=1))
+    model.add(Flatten())
+    model.add(Dense(units=120))
+    model.add(Dense(units=84))
+    model.add(Dense(units=1))
 
+if Structure == "NVidia":
+    model.add()
 model.compile(loss='mse', optimizer='adam')
 history_object = model.fit_generator(train_generator,
                                      steps_per_epoch=math.ceil(len(train_samples)/batch_size),
