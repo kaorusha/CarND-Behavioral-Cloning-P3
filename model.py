@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 lines = []
-with open('training_data/driving_log.csv') as csvfile:
+with open('provided_data/driving_log.csv') as csvfile:
     reader = csv.reader(csvfile)
     for line in reader:
         lines.append(line)
@@ -27,7 +27,7 @@ def generator(samples, batch_size=32):
                 correction = 0.3
                 
                 for i in range(3):
-                    img_path = 'training_data/IMG/' + batch_sample[i].split('/')[-1]
+                    img_path = 'provided_data/IMG/' + batch_sample[i].split('/')[-1]
                     image = cv2.imread(img_path)
                     angle = float(batch_sample[3])
                     # left image
@@ -59,7 +59,7 @@ from keras.layers.convolutional import Convolution2D
 from keras.layers.pooling import MaxPooling2D
 import math
 
-Architecture = "LeNet" # LeNet, NVidia
+Architecture = "NVidia" # LeNet, NVidia
 # set up lambda layer to normalized and mean_centered the input pixels
 model = Sequential()
 model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160,320,3)))
@@ -104,7 +104,7 @@ history_object = model.fit_generator(train_generator,
                                      steps_per_epoch=math.ceil(len(train_samples)/batch_size),
                                      validation_data=validation_generator,
                                      validation_steps=math.ceil(len(validation_samples)/batch_size),
-                                     epochs=5, verbose = 1)
+                                     epochs=10, verbose = 1)
 
 model.save('model.h5')
 
