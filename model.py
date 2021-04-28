@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 lines = []
-with open('bridge/driving_log.csv') as csvfile:
+with open('data/driving_log.csv') as csvfile:
     reader = csv.reader(csvfile)
     for line in reader:
         lines.append(line)
@@ -27,7 +27,7 @@ def generator(samples, batch_size=32):
                 correction = 0.3
                 
                 for i in range(3):
-                    img_path = 'bridge/IMG/' + batch_sample[i].split('/')[-1]
+                    img_path = 'data/IMG/' + batch_sample[i].split('/')[-1]
                     image = cv2.imread(img_path)
                     angle = float(batch_sample[3])
                     # left image
