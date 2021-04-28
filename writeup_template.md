@@ -80,6 +80,7 @@ Two architecture were included: `LeNet-5` and [NVidia](https://developer.nvidia.
 |Total params: 25,955,233
 |Trainable params: 25,955,233
 |Non-trainable params: 0
+|
 
 #### 2. Attempts to reduce overfitting in the model
 
@@ -93,7 +94,7 @@ The model used an adam optimizer, so the learning rate was not tuned manually (m
 
 #### 4. Appropriate training data
 
-Training data was chosen to keep the vehicle driving on the road. I used a combination of center lane driving, recovering from the left and right sides of the road ... 
+The training data is just recorded from center lane driving, and kept the vehicle in the middle of lane as much as possible when recording. Samples taken by left and right camera were used for the vehicke to recover from the left and right sides of the road. To simulate the recover behavior, a parameter was add to the throttle to teach the model to steer a larger angle.
 
 For details about how I created the training data, see the next section. 
 
@@ -101,13 +102,13 @@ For details about how I created the training data, see the next section.
 
 #### 1. Solution Design Approach
 
-The overall strategy for deriving a model architecture was to ...
+The overall strategy for deriving a model architecture was to train a blank model of specific architecture with samples that captured from simulated track.
 
-My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
+My first step was to use a convolution neural network model similar to the `LeNet-5`. I thought this model might be appropriate because which is used for classifying traffic signs in the previous project and can recognize the edges and shapes of the signs and numbers from the first and second convolution layers, so it could probably sees the lanes on the roads.  
 
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
+In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. At the begining only the samples taken by center camera was used. And the validation loss is above 0.03. I trained the model with `data` provided by the workspace for 10 epochs. I found that my first model had a low mean squared error on the training set, and a similar low mean squared error on the validation set. But the validation error start to oscillate after the 5th epoch. This implied that the model was overfitting. 
 
-To combat the overfitting, I modified the model so that ...
+To combat the overfitting, data augmentation and dropout layer were used. I modified the model so that ...
 
 Then I ... 
 
@@ -124,6 +125,8 @@ Here is a visualization of the architecture (note: visualizing the architecture 
 ![alt text][image1]
 
 #### 3. Creation of the Training Set & Training Process
+
+Addtional to the `data` provided in the workspace, I recorded 2 complete lap, clockwise and counter clockwise of Track1. (I was going to do the same thing for Track2 but I kept falling from cliff...) The training data was taken by steering carefully to keep the vihicle in the middle of the lane. Because the throttle is not considered in the test so the speed was as low as enough to keep the car moving. For me using the keyboard is easier to control the vehicle. 
 
 To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
 
