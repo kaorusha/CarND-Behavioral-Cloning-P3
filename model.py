@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 lines = []
-with open('provided_data/driving_log.csv') as csvfile:
+with open('bridge/driving_log.csv') as csvfile:
     reader = csv.reader(csvfile)
     for line in reader:
         lines.append(line)
@@ -27,7 +27,7 @@ def generator(samples, batch_size=32):
                 correction = 0.3
                 
                 for i in range(3):
-                    img_path = 'provided_data/IMG/' + batch_sample[i].split('/')[-1]
+                    img_path = 'bridge/IMG/' + batch_sample[i].split('/')[-1]
                     image = cv2.imread(img_path)
                     angle = float(batch_sample[3])
                     # left image
@@ -54,7 +54,7 @@ train_generator = generator(train_samples, batch_size=batch_size)
 validation_generator = generator(validation_samples, batch_size=batch_size)
   
 from keras.models import Sequential
-from keras.layers import Flatten, Dense, Lambda, Cropping2D
+from keras.layers import Flatten, Dense, Lambda, Cropping2D, Dropout
 from keras.layers.convolutional import Convolution2D
 from keras.layers.pooling import MaxPooling2D
 import math
@@ -78,8 +78,10 @@ if Architecture == "LeNet":
     model.add(Flatten())
     model.add(Dense(units=120))
     model.add(Dense(units=84))
+    model.add(Dropout(0.25))
     model.add(Dense(units=1))
 
+# NVidia
 if Architecture == "NVidia":
     model.add(Convolution2D(filters=24, kernel_size=(5, 5), activation="relu"))
     model.add(MaxPooling2D())
@@ -97,16 +99,21 @@ if Architecture == "NVidia":
     model.add(Dense(units=1164))
     model.add(Dense(units=100))
     model.add(Dense(units=50))
+    model.add(Dropout(0.25))
     model.add(Dense(units=1))
-    
+
+# fine tune: command this line for the first training
+model.load_weights('weights.h5')
+
 model.compile(loss='mse', optimizer='adam')
 history_object = model.fit_generator(train_generator,
                                      steps_per_epoch=math.ceil(len(train_samples)/batch_size),
                                      validation_data=validation_generator,
                                      validation_steps=math.ceil(len(validation_samples)/batch_size),
-                                     epochs=10, verbose = 1)
+                                     epochs=5, verbose = 1)
 
 model.save('model.h5')
+model.save_weights('weights.h5')
 
 import matplotlib.pyplot as plt
 
