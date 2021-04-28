@@ -3,7 +3,7 @@ import argparse
 import os
 
 IMAGE_EXT = ['jpeg', 'gif', 'png', 'jpg']
-
+os.environ["IMAGEIO_FFMPEG_EXE"] = "/usr/bin/ffmpeg"
 
 def main():
     parser = argparse.ArgumentParser(description='Create driving video.')
