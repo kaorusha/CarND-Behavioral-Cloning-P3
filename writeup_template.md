@@ -16,14 +16,14 @@ The goals / steps of this project are the following:
 
 [image1]: ./examples/model_plot.png "Model Visualization"
 [image2]: ./examples/placeholder.png "Grayscaling"
-[image3]: ./examples/placeholder_small.png "Recovery Image"
-[image4]: ./examples/placeholder_small.png "Recovery Image"
-[image5]: ./examples/placeholder_small.png "Recovery Image"
-[image6]: ./examples/placeholder_small.png "Normal Image"
-[image7]: ./examples/placeholder_small.png "Flipped Image"
+[image3]: ./examples/center_2021_04_27_08_55_33_676.jpg "Center Image"
+[image4]: ./examples/left_2021_04_27_08_55_33_676.jpg "Left Image"
+[image5]: ./examples/right_2021_04_27_08_55_33_676.jpg "Right Image"
+[image6]: ./examples/center_2021_04_27_08_55_33_676_normalize.jpg "Normalized Image"
+[image7]: ./examples/center_2021_04_27_08_55_33_676_flip.jpg "Flipped Image"
 
 ## Rubric Points
-### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
+### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/1968/view) individually and describe how I addressed each point in my implementation.  
 
 ---
 ### Files Submitted & Code Quality
@@ -31,12 +31,13 @@ The goals / steps of this project are the following:
 #### 1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
 My project includes the following files:
-* [model.py](model.py) containing the script to create and train the model
-* [drive.py](drive.py) for driving the car in autonomous mode
-* model.h5 containing a trained convolution neural network 
-* writeup_report.md summarizing the results
-* [video.mp4](video.mp4) for recording of autonomous mode using model.h5 for 1 lap around Track1
+* **[model.py](model.py)** containing the script to create and train the model
+* **[drive.py](drive.py)** for driving the car in autonomous mode
+* **model.h5** containing a trained convolution neural network 
+* **writeup_report.md** summarizing the results
+* **[video.mp4](video.mp4)** for recording of autonomous mode using model.h5 for 1 lap around Track1
 * weights.h5 containing the weights of model.h5 in order to fine tune the model like transfer learning.
+* [visualize.py](visualize.py) show summery and visualize graph of model.h5
 
 #### 2. Submission includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
@@ -46,7 +47,7 @@ python drive.py model.h5
 
 #### 3. Submission code is usable and readable
 
-The [model.py](model.py) file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
+The code in [model.py](model.py) uses a Python generator to generate data for training rather than storing the training data in memory (code line 17 to 47 and line 109 to 113). The file shows the pipeline I used for training,validating, and saving the convolution neural network model, and it contains comments to explain how the code works.
 
 Note: substitute the directory name of training data for `data/` in line 6 and line 30.
 
@@ -54,9 +55,9 @@ Note: substitute the directory name of training data for `data/` in line 6 and l
 
 #### 1. An appropriate model architecture has been employed
 
-My model consists of a convolution neural network with 3x3 filter sizes and depths between 32 and 128 (model.py lines 18-24) 
+The neural network uses convolution layers with appropriate filter sizes of 5x5 and 3x3, and depths between 24 and 64 (model.py lines 63-103) 
 
-The model includes RELU layers to introduce nonlinearity (code line 20), and the data is normalized in the model using a Keras lambda layer (code line 18).
+The model includes RELU layers to introduce nonlinearity, and the data is normalized in the model using a Keras lambda layer (code line 65).
 
 Two architecture were included: `LeNet-5` and [NVidia](https://developer.nvidia.com/blog/deep-learning-self-driving-cars/). The `LeNet-5` model reached at best about 0.026 for validation loss. The eventually used architecture is `NVidia` summarized as follow: 
 
@@ -80,13 +81,16 @@ Two architecture were included: `LeNet-5` and [NVidia](https://developer.nvidia.
 |Total params: 25,955,233
 |Trainable params: 25,955,233
 |Non-trainable params: 0
-|
+
 
 #### 2. Attempts to reduce overfitting in the model
-
-The model contains dropout layers in order to reduce overfitting (model.py line 81 and line 102). 
-
+ 
+* Train/validation/test splits </br>
 The model was trained and validated on different data sets to ensure that the model was not overfitting using `train_test_split()` of `sklearn.model_selection` (code line 13). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
+* Attempts to reduce overfitting
+  * Augmented data was used by flipping images form center, left and right camera.
+  * Use cropped images to better focus on the road feature (model.py line 68).
+  * The model contains dropout layers (model.py line 81 and line 102).
 
 #### 3. Model parameter tuning
 
@@ -94,7 +98,7 @@ The model used an adam optimizer, so the learning rate was not tuned manually (m
 
 #### 4. Appropriate training data
 
-The training data is just recorded from center lane driving, and kept the vehicle in the middle of lane as much as possible when recording. Samples taken by left and right camera were used for the vehicke to recover from the left and right sides of the road. To simulate the recover behavior, a parameter was add to the throttle to teach the model to steer a larger angle.
+The training data was recorded from center lane driving only, and kept the vehicle in the middle of lane as much as possible when recording. Since the vehicle was kept at center, the recovering steer when approaching lane edge was not recorded. Instead, samples taken by left and right camera were used to train recover steering by adding a constant parameter to get a larger steering angle.
 
 For details about how I created the training data, see the next section. 
 
@@ -102,53 +106,67 @@ For details about how I created the training data, see the next section.
 
 #### 1. Solution Design Approach
 
-The overall strategy for deriving a model architecture was to train a blank model of specific architecture with samples that captured from simulated track.
+The overall strategy for deriving a model architecture was to train a blank model of specific architecture with samples that captured from simulated track. Fine tune the model with new data which is recorded at the spots where the vehicle fell off the track previously.
 
 My first step was to use a convolution neural network model similar to the `LeNet-5`. I thought this model might be appropriate because which is used for classifying traffic signs in the previous project and can recognize the edges and shapes of the signs and numbers from the first and second convolution layers, so it could probably sees the lanes on the roads.  
 
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. At the begining only the samples taken by center camera was used. And the validation loss is above 0.03. I trained the model with `data` provided by the workspace for 10 epochs. I found that my first model had a low mean squared error on the training set, and a similar low mean squared error on the validation set. But the validation error start to oscillate after the 5th epoch. This implied that the model was overfitting. 
+In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. At the beginning only the samples taken by center camera was used. And the validation loss is above 0.03. I trained the model with `data` provided by the workspace for 10 epochs. I found that my first model had a low mean squared error on the training set, and a similar low mean squared error on the validation set. But the validation error start to oscillate after the 5th epoch. This implied that the model was overfitting. 
 
-To combat the overfitting, data augmentation and dropout layer were used. I modified the model so that ...
+To combat the overfitting, data augmentation and dropout layer were used in different stage.
+|Step                 |Test Result              |Analysis   
+|-----------------------------|--------------------------|-----------
+| * Data augmentation </br> Flip images for 2x samples | Failed at the first left turn | Insufficient image sample at turning corner
+| * Data augmentation </br> Add left and right camera images, including flip images,</br> total 6x samples than previous training. </br> * Steering corrective parameter </br> add 0.2 to steer back to center (code line 33 to 38)| Still failed at the first left turn | Corrective parameter may be too small
+| Aggressive corrective parameter (0.3) | The validation loss was 0.286 and the model made it to the bridge
 
-Then I ... 
 
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I ....
+I modified the model to use `NVidia` architecture in the hope of passing the sharp left turn after the bridge.
+|Step                 |Test Result              |Analysis   
+|-----------------------------|--------------------------|-----------
+| Modify model and trained with `data` in the workspace | Trained with 10 epochs and get 0.025 validation loss </br> fail at sharp left turn | overfitting
+| * Add dropout layer (code line 81 and 102) | validation loss slowly reduced each epoch </br> but can't pass the sharp left turn | insufficient data
+| * Fine tune the model weights </br> Record my own laps of training data **(1)**</br> in additional to `data` in the workspace | Trained for 5 epochs with validation loss less than 0.02</br> successfully turn at the sharp left turn after the bridge, </br>but hit the bridge guardrail on the right side | Use the idea of transfer learning
+| * Fine tune the model weights </br> Record of passing the bridge **(2)** | Trained for 5 epochs with validation loss less than 0.01 </br> kept in the center of the track
+
+Each modification was tested by running the simulator to see how well the car was driving around track one. For the spots where the vehicle fell off the track, record new data and train the existed model to improve the driving behavior in these cases.
+2 additional training data was recorded: (1) overall lap, and (2) passing the bridge.
 
 At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
 
 #### 2. Final Model Architecture
 
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
+The final model architecture (model.py lines 85-103) consisted of a convolution neural network which consists of 11 layers, including a normalization layer, a cropping layer, 5 convolutional layers (filter size is 5x5 for the first 3 layers and 3x3 for the last 2 layers), and 4 fully connected layers. 
 
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
-
+Here is a visualization of the architecture, which can be generated using 
+```sh
+python visualize.py
+```
 ![alt text][image1]
 
 #### 3. Creation of the Training Set & Training Process
 
-Addtional to the `data` provided in the workspace, I recorded 2 complete lap, clockwise and counter clockwise of Track1. (I was going to do the same thing for Track2 but I kept falling from cliff...) The training data was taken by steering carefully to keep the vihicle in the middle of the lane. Because the throttle is not considered in the test so the speed was as low as enough to keep the car moving. For me using the keyboard is easier to control the vehicle. 
+As described above, 3 recoded data set was used. First trained with `data` in the workspace than saved the weights. Secondly, fine tuned with my own recorded lap. Finally, fine tuned with another recording of passing bridge. 
 
-To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
+For the second part, I recorded 2 complete lap on Track1, one in clockwise and another in counter clockwise direction using center lane driving. To capture good driving behavior, I steered carefully with keyboard to keep the vehicle in the middle of the lane. Because the throttle is not considered in the test so the speed was as low as enough to keep the car moving. For me using the keyboard is easier to control the vehicle. After finishing the first lap, I paused and made a U turn then recorded the second lap in counter clockwise direction.
 
-![alt text][image2]
+During center lane driving, left side and right sides image also recorded in the meantime. These images has a corresponding throttle value. As described above, adding the throttle by 0.3 for the left image to make the vehicle turn right. In the other hand, reducing the throttle by 0.3 for the right image to make the vehicle turn left.  Thus the model learned how to recover back to the track.
 
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to .... These images show what a recovery looks like starting from ... :
+Here are left, center and right image taken by 3 camera: 
 
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
+![from left camera][image4]
+![from center camera][image3]
+![from right camera][image5]
 
-Then I repeated this process on track two in order to get more data points.
+I was going to do the same thing for Track2 but kept falling from cliff, or rolling back on a hill. The auto throttle is not enough for uphill. So far only Track1 was recorded.
 
-To augment the data sat, I also flipped images and angles thinking that this would ... For example, here is an image that has then been flipped:
+To augment the data sat, I also flipped images and angles thinking that this would helps balancing the left and right turn scenes. For example, left image below is the original image taken by center camera and the right one has then been flipped:
 
-![alt text][image6]
-![alt text][image7]
+![origin][image3]
+![flip][image7]
 
-Etc ....
-
-After the collection process, I had X number of data points. I then preprocessed this data by ...
-
+After the collection process, there are 10940 x 3 x 2 images in the second training and validation samples.
+I then preprocessed this data by setting up lambda layer to normalized and mean_centered the input pixels.
+![normalized and mean_centered][image6]
 
 I finally randomly shuffled the data set and put Y% of the data into a validation set. 
 

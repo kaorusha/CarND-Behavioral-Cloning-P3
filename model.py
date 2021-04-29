@@ -107,11 +107,12 @@ model.load_weights('weights.h5')
 
 model.compile(loss='mse', optimizer='adam')
 history_object = model.fit_generator(train_generator,
-                                     steps_per_epoch=math.ceil(len(train_samples)/batch_size),
+                                     steps_per_epoch=math.ceil(len(train_samples)/batch_size), # set to default None = 6*len(train_samples)/batch_size
                                      validation_data=validation_generator,
-                                     validation_steps=math.ceil(len(validation_samples)/batch_size),
+                                     validation_steps=math.ceil(len(validation_samples)/batch_size), # set to default None = 6*len(validation_samples)/batch_size
                                      epochs=5, verbose = 1)
-
+# steps_per_epoch and validation_steps should be 6x of above value because I got 6 images(center, left, right and flip(x2)) from each sample(one row in driving_log.csv)
+# So that makes the training stops early
 model.save('model.h5')
 model.save_weights('weights.h5')
 
