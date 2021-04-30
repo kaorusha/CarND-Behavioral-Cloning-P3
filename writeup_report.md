@@ -1,5 +1,4 @@
 # **Behavioral Cloning** 
-
 ---
 
 **Behavioral Cloning Project**
@@ -122,17 +121,17 @@ To combat the overfitting, data augmentation and dropout layer were used in diff
 |Step                 |Test Result              |Analysis   
 |-----------------------------|--------------------------|-----------
 | * Data augmentation </br> Flip images for 2x samples | Failed at the first left turn | Insufficient image sample at turning corner
-| * Data augmentation </br> Add left and right camera images, including flip images,</br> total 6x samples than previous training. </br> * Steering corrective parameter </br> add 0.2 to steer back to center (code line 33 to 38)| Still failed at the first left turn | Corrective parameter may be too small
+| * Data augmentation </br> Add left and right camera images, including flip images, total 6x samples than previous training. </br> * Steering corrective parameter </br> add 0.2 to steer back to center (code line 33 to 38)| Still failed at the first left turn | Corrective parameter may be too small
 | Aggressive corrective parameter (0.3) | The validation loss was 0.286 and the model made it to the bridge
 
 
 I modified the model to use `NVidia` architecture in the hope of passing the sharp left turn after the bridge.
 |Step                 |Test Result              |Analysis   
 |-----------------------------|--------------------------|-----------
-| Modify model and trained with `data` in the workspace | Trained with 10 epochs and get 0.025 validation loss </br> fail at sharp left turn | overfitting
-| * Add dropout layer (code line 81 and 102) | validation loss slowly reduced each epoch </br> but can't pass the sharp left turn | insufficient data
-| * Fine tune the model weights </br> Record my own laps of training data **(1)**</br> in additional to `data` in the workspace | Trained for 5 epochs with validation loss less than 0.02</br> successfully passed the sharp left turn after the bridge, </br>but hit the bridge guardrail on the right side | Use the idea of transfer learning
-| * Fine tune the model weights </br> Record of passing the bridge **(2)** | Trained for 5 epochs with validation loss less than 0.01 </br> kept in the center of the track
+| Modify model and trained with `data` in the workspace | * Trained with 10 epochs and get 0.025 validation loss </br>* fail at sharp left turn | overfitting
+| * Add dropout layer (code line 81 and 102) | * validation loss slowly reduced each epoch </br> * can't pass the sharp left turn | insufficient data
+| * Fine tune the model weights </br> Record my own laps of training data **(1)**</br> in additional to `data` in the workspace | * Trained for 5 epochs with validation loss less than 0.02</br>* successfully passed the sharp left turn after the bridge </br>* hit the bridge guardrail on the right side | Use the idea of transfer learning
+| * Fine tune the model weights </br> Record of passing the bridge **(2)** | * Trained for 5 epochs with validation loss less than 0.01 </br>* kept in the center of the track
 
 Each modification was tested by running the simulator to see how well the car was driving around track one. For the spots where the vehicle fell off the track, record new data and train the existed model to improve the driving behavior in these cases.
 2 additional training data was recorded: (1) overall lap, and (2) passing the bridge.
@@ -171,18 +170,21 @@ To augment the data sat, I also flipped images and angles thinking that this wou
 ![flip][image7]
 
 After the collection process, there are 10940 x 3 x 2 images in the second training and validation samples.
-I then preprocessed this data by setting up lambda layer to normalized and mean_centered the input pixels (code line 65). The image has been linear mapping from [0,255] to [-0.5,0.5] without changing its contrast but it is crucial for model training. Other types of normalization is not used in training but would be helpful if our sample includes varying lighting condition. Using [cv::normalize()](https://docs.opencv.org/master/d2/de8/group__core__array.html#ga87eef7ee3970f86906d69a92cbf064bd), normalize the min and max value to range [0,255] will enhance the contrast, normalize to the max element do similar, and normalize to unit vector. The normalized results were processed in order to show as image. 
+I then preprocessed this data by setting up lambda layer to normalized and mean_centered the input pixels (code line 65). The image has been linear mapping from [0,255] to [-0.5,0.5] without changing its contrast but it is crucial for model training. Other types of normalization is not used in training but would be helpful if our sample includes varying lighting condition. Using [cv::normalize()](https://docs.opencv.org/master/d2/de8/group__core__array.html#ga87eef7ee3970f86906d69a92cbf064bd), normalize the min and max value to range [0,255] will enhance the contrast, normalize to the max element do similar, and normalize to unit vector. The normalized results were processed in order to show as image.
+
 ![alt text][image6]
 ![alt text][image8]
 ![alt text][image9]
 
 I finally randomly shuffled the data set and put 20% of the data into a validation set.
 The image samples were than cropped to better focus on the road feature.
+
 ![alt text][image10]
 
 I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was 5 as evidenced by experiment that shows the validation loss decreased vary slow after 5 epochs. I used an adam optimizer so that manually training the learning rate wasn't necessary.
 
-After the first (trained by `data` of workspace) and second (trained by my records) of training, the model runs well except at the bridge. So the new records of passing bridge was taken to fine-tune the model.
+After the first (trained by `data` of workspace) and second (trained by my records) of training, the model runs well except at the bridge. So the new records of passing bridge was taken to fine-tune the model. The record was taken by center lane driving through the bridge slowly 2 times with reverse directions. There are 2055 x 3 x 2 images in the third training and validation samples.
+
 ![alt text][image12]
 ![alt text][image11]
 ![alt text][image13]
